@@ -322,14 +322,34 @@ class PostgresPrefixLegacySearchBackend(RegexSearchMixin, PostgresLegacySearchBa
     """
         
 
+
+# stolen from newer version
+from django.utils.encoding import force_text
+RE_SPACE = re.compile(r"[\s]+", re.UNICODE)
+RE_NON_WORD = re.compile(r"[^ \w\-']", re.UNICODE)
+
+def escape_query(text):
+    text = force_text(text)
+    text = RE_SPACE.sub(" ", text)  # Standardize spacing.
+    text = RE_NON_WORD.sub("", text)  # Remove non-word characters.
+    return text
+    
+# end 
+
+    
+    
+
 escape_mysql_boolean_query_chars = make_escaper("+-<>()*\".!:,;")
+
+
 
 def escape_mysql_boolean_query(search_text):
     return " ".join(
         '+{word}*'.format(
             word = word,
         )
-        for word in escape_mysql_boolean_query_chars(search_text).split()
+        #for word in escape_mysql_boolean_query_chars(search_text).split()
+        for word in escape_query(search_text).split()
     )
     
 
